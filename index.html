@@ -173,18 +173,57 @@
                 },
                 mouseover: highlightFeature,
             });
-            const { doc } = feature.properties;
-            const radius = doc !== null ? 1746 / doc : null;
-            var popupContent = '<table>\
-                    <tr>\
-                        <th scope="row">Degree of Curvature (100 ft arc)</th>\
-                        <td class="visible-with-data" id="doc">' + (doc !== null ? autolinker.link(doc.toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Radius of Curvature (m)</th>\
-                        <td class="visible-with-data" id="doc">' + (radius !== null ? autolinker.link(radius.toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
+
+            function renderCurveProperty({value, name, unit}) {
+                return `<tr>
+                    <th scope="row">${name}</th>
+                    <td class="visible-with-data" id="doc">${(value === undefined ? '' : autolinker.link(value.toLocaleString()))} ${unit}</td>
+                </tr>`;
+            }
+
+            // doc is degrees of curvature with a 100 ft arc length
+            function calcCurveProperties(doc) {
+                const props = {
+                    doc: {name: "Curvature (100 ft arc)", unit: "°"},
+                    radius: {name: "Radius", unit: "m"},
+                    mph: {name: "Speed", unit: "mph"},
+                    kmh: {name: "Speed", unit: "kmh"},
+                };
+
+                if (doc === null) {
+                    return props;
+                }
+
+                // The calculations here are done in SI units.
+
+                const radius = 1746 / doc;
+
+                // Speed Formula: `a <= 2.2 if v <= 55.55 else a <= 2.07`
+                const lateralAcceleration = {
+                    highSpeed: 2.07,
+                    lowSpeed: 2.2,
+                };
+                const speed = Math.max(
+                    Math.min(55.55, Math.sqrt(lateralAcceleration.highSpeed * radius)),
+                    Math.sqrt(lateralAcceleration.lowSpeed * radius),
+                );
+
+                const kmh = speed * 3.6;
+                const mph = speed * 2.23694;
+
+                props.doc.value = doc;
+                props.radius.value = radius;
+                props.kmh.value = kmh;
+                props.mph.value = mph;
+
+                return props;
+            }
+
+            const curveProps = calcCurveProperties(feature.properties.doc);
+
+            const popupContent = `<table>
+                ${Object.values(curveProps).map(renderCurveProperty).join("")}
+            </table>`;
             layer.bindPopup(popupContent, {maxHeight: 400});
             var popup = layer.getPopup();
             var content = popup.getContent();
