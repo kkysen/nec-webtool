@@ -35,7 +35,28 @@ var map = new ol.Map({
 var layerSwitcher = new ol.control.LayerSwitcher({tipLabel: "Layers"});
 map.addControl(layerSwitcher);
 
-map.getView().fit([-8964125.480985, 4581928.971972, -7500348.196890, 5308647.516458], map.getSize());
+// Restore the view from a "#map=zoom/lat/lon" URL hash so it survives reloads and can be shared,
+// falling back to the full NEC extent.
+var restoreViewFromHash = function() {
+    var match = window.location.hash.match(/^#map=([\d.]+)\/(-?[\d.]+)\/(-?[\d.]+)$/);
+    if (!match) {
+        return false;
+    }
+    var view = map.getView();
+    view.setZoom(parseFloat(match[1]));
+    view.setCenter(ol.proj.fromLonLat([parseFloat(match[3]), parseFloat(match[2])]));
+    return true;
+};
+if (!restoreViewFromHash()) {
+    map.getView().fit([-8964125.480985, 4581928.971972, -7500348.196890, 5308647.516458], map.getSize());
+}
+map.on('moveend', function() {
+    var view = map.getView();
+    var lonLat = ol.proj.toLonLat(view.getCenter());
+    var hash = '#map=' + view.getZoom().toFixed(2) + '/' + lonLat[1].toFixed(5) + '/' + lonLat[0].toFixed(5);
+    // replaceState so panning doesn't fill up the back button history.
+    window.history.replaceState(null, '', hash);
+});
 
 var NO_POPUP = 0
 var ALL_FIELDS = 1
