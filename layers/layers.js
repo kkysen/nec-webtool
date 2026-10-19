@@ -1,17 +1,28 @@
 var wms_layers = [];
 
 
-        var lyr_Background_0 = new ol.layer.Tile({
-            'title': 'Background',
-            //'type': 'base',
-            'opacity': 1.000000,
-            
-            
-            source: new ol.source.XYZ({
-    attributions: ' &middot; &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-            })
-        });
+var lyr_OSM_0 = new ol.layer.Tile({
+    'title': 'OpenStreetMap',
+    'type': 'base',
+    source: new ol.source.XYZ({
+        attributions: ' &middot; &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    })
+});
+// Muted basemap without railways, so the NEC tracks don't overlap OSM's own rail lines.
+var lyr_LightGray_0 = new ol.layer.Tile({
+    'title': 'Light gray (no rail)',
+    'type': 'base',
+    visible: false,
+    source: new ol.source.XYZ({
+        attributions: ' &middot; Tiles &copy; <a href="https://www.esri.com/">Esri</a>, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+    })
+});
+var lyr_Background_0 = new ol.layer.Group({
+    'title': 'Background',
+    layers: [lyr_LightGray_0, lyr_OSM_0]
+});
 var format_NetworkSpeed_1 = new ol.format.GeoJSON();
 var features_NetworkSpeed_1 = format_NetworkSpeed_1.readFeatures(json_NetworkSpeed_1, 
             {dataProjection: 'EPSG:4326', featureProjection: 'EPSG:3857'});
