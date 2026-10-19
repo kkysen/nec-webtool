@@ -8,8 +8,8 @@ var wms_layers = [];
             
             
             source: new ol.source.XYZ({
-    attributions: ' &middot; <a href="https://cartodb.com/basemaps/">Map tiles by CartoDB, under CC BY 3.0. Data by OpenStreetMap, under ODbL.</a>',
-                url: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+    attributions: ' &middot; &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
             })
         });
 var format_NetworkSpeed_1 = new ol.format.GeoJSON();
