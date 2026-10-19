@@ -139,6 +139,15 @@ var clearHighlight = function(hl) {
         hl.feature = undefined;
     }
 };
+// Distance from coord to a feature, 0 if inside a polygon.
+var distanceToFeature = function(feature, coord) {
+    var geometry = feature.getGeometry();
+    if (geometry.intersectsCoordinate(coord)) {
+        return 0;
+    }
+    var closest = geometry.getClosestPoint(coord);
+    return Math.hypot(closest[0] - coord[0], closest[1] - coord[1]);
+};
 var onPointerMove = function(evt) {
     if (!doHover && !doHighlight) {
         return;
@@ -150,6 +159,11 @@ var onPointerMove = function(evt) {
     var currentLayer;
     var currentFeatureKeys;
     var clusteredFeatures;
+    // With hitTolerance several features can match, e.g. parallel tracks,
+    // so highlight the one nearest the pointer rather than the last one found.
+    var nearestFeature;
+    var nearestLayer;
+    var nearestDistance = Infinity;
     var popupText = '<ul>';
     map.forEachFeatureAtPixel(pixel, function(feature, layer) {
         if (layer && feature instanceof ol.Feature && (layer.get("interactive") || layer.get("interactive") == undefined)) {
@@ -158,6 +172,12 @@ var onPointerMove = function(evt) {
                 if (layer.get('fieldImages')[k] != "Hidden") {
                     doPopup = true;
                 }
+            }
+            var distance = distanceToFeature(feature, coord);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestFeature = feature;
+                nearestLayer = layer;
             }
             currentFeature = feature;
             currentLayer = layer;
@@ -193,6 +213,8 @@ var onPointerMove = function(evt) {
 
     if (doHighlight) {
         var hl = evt.type == 'singleclick' ? selectHighlight : hoverHighlight;
+        currentFeature = nearestFeature;
+        currentLayer = nearestLayer;
         if (currentFeature !== hl.feature) {
             clearHighlight(hl);
             if (currentFeature) {
