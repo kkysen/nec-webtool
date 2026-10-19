@@ -115,6 +115,11 @@ function createPopupField(currentFeature, currentFeatureKeys, layer) {
     return popupText;
 }
 
+// Pixels of slop around features so thin lines are easier to hover and tap.
+var getHitTolerance = function(evt) {
+    return evt.originalEvent.pointerType == 'touch' ? 15 : 6;
+};
+
 var highlight;
 var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
 var onPointerMove = function(evt) {
@@ -162,7 +167,7 @@ var onPointerMove = function(evt) {
                 }
             }
         }
-    });
+    }, {hitTolerance: getHitTolerance(evt)});
     if (popupText == '<ul>') {
         popupText = '';
     } else {
@@ -272,7 +277,7 @@ var onSingleClick = function(evt) {
                 }
             }
         }
-    });
+    }, {hitTolerance: getHitTolerance(evt)});
     if (popupText == '<ul>') {
         popupText = '';
     } else {
