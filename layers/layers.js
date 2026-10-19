@@ -19,9 +19,19 @@ var lyr_LightGray_0 = new ol.layer.Tile({
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
     })
 });
+var lyr_USGSImagery_0 = new ol.layer.Tile({
+    'title': 'USGS satellite',
+    'type': 'base',
+    visible: false,
+    source: new ol.source.XYZ({
+        attributions: ' &middot; Imagery: <a href="https://www.usgs.gov/programs/national-geospatial-program/national-map">USGS The National Map</a>, USDA',
+        url: 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}',
+        maxZoom: 23
+    })
+});
 var lyr_Background_0 = new ol.layer.Group({
     'title': 'Background',
-    layers: [lyr_LightGray_0, lyr_OSM_0]
+    layers: [lyr_USGSImagery_0, lyr_LightGray_0, lyr_OSM_0]
 });
 var format_NetworkSpeed_1 = new ol.format.GeoJSON();
 var features_NetworkSpeed_1 = format_NetworkSpeed_1.readFeatures(json_NetworkSpeed_1, 
