@@ -7,6 +7,7 @@ var sketch;
 
 closer.onclick = function() {
     container.style.display = 'none';
+    clearHighlight(selectHighlight);
     closer.blur();
     return false;
 };
@@ -54,6 +55,15 @@ function getPopupFields(layerList, layer) {
 }
 
 
+// Holds the clicked feature, drawn under the hover highlight so hovering still works with a popup open.
+var selectOverlay = new ol.layer.Vector({
+    map: map,
+    source: new ol.source.Vector({
+        useSpatialIndex: false
+    }),
+    updateWhileAnimating: true,
+    updateWhileInteracting: true
+});
 var collection = new ol.Collection();
 var featureOverlay = new ol.layer.Vector({
     map: map,
@@ -120,8 +130,15 @@ var getHitTolerance = function(evt) {
     return evt.originalEvent.pointerType == 'touch' ? 15 : 6;
 };
 
-var highlight;
+var hoverHighlight = {overlay: featureOverlay, feature: undefined};
+var selectHighlight = {overlay: selectOverlay, feature: undefined};
 var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+var clearHighlight = function(hl) {
+    if (hl.feature) {
+        hl.overlay.getSource().removeFeature(hl.feature);
+        hl.feature = undefined;
+    }
+};
 var onPointerMove = function(evt) {
     if (!doHover && !doHighlight) {
         return;
@@ -175,10 +192,9 @@ var onPointerMove = function(evt) {
     }
 
     if (doHighlight) {
-        if (currentFeature !== highlight) {
-            if (highlight) {
-                featureOverlay.getSource().removeFeature(highlight);
-            }
+        var hl = evt.type == 'singleclick' ? selectHighlight : hoverHighlight;
+        if (currentFeature !== hl.feature) {
+            clearHighlight(hl);
             if (currentFeature) {
                 var styleDefinition = currentLayer.getStyle().toString();
 
@@ -212,10 +228,10 @@ var onPointerMove = function(evt) {
                         })
                     })
                 }
-                featureOverlay.getSource().addFeature(currentFeature);
-                featureOverlay.setStyle(highlightStyle);
+                hl.overlay.getSource().addFeature(currentFeature);
+                hl.overlay.setStyle(highlightStyle);
             }
-            highlight = currentFeature;
+            hl.feature = currentFeature;
         }
     }
 
@@ -238,6 +254,8 @@ var onSingleClick = function(evt) {
     if (sketch) {
         return;
     }
+    // Taps send no pointermove, so highlight the clicked feature here too.
+    onPointerMove(evt);
     var pixel = map.getEventPixel(evt.originalEvent);
     var coord = evt.coordinate;
     var popupField;
